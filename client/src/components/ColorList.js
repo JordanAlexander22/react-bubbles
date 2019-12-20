@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosWithAuth from "../API/axiosWithAuth";
 
 const initialColor = {
   color: "",
@@ -21,10 +21,37 @@ const ColorList = ({ colors, updateColors }) => {
     // Make a put request to save your updated color
     // think about where will you get the id from...
     // where is is saved right now?
+    axiosWithAuth()
+      .put(`http://localhost:5000/api/colors/${colorToEdit.id}`, colorToEdit)
+      .then(res => {
+        console.log(res);
+      })
+      .catch(error => {
+        console.log(error, "not saved");
+      });
+    updateColors(
+      colors.map(color => {
+        if (color.id === colorToEdit.id) {
+          return colorToEdit;
+        }
+        return color;
+      })
+    );
+    setEditing(false);
   };
 
-  const deleteColor = color => {
+  const deleteColor = colorDelete => {
     // make a delete request to delete this color
+    axiosWithAuth()
+      .delete(`http://localhost:5000/api/colors/${colorDelete.id}`)
+      .then(res => {
+        console.log(res);
+      })
+      .catch(error => {
+        console.log(error, "failed to delete");
+      });
+    updateColors(colors.filter(color => color.id !== colorDelete.id));
+    setEditing(false);
   };
 
   return (
@@ -34,12 +61,14 @@ const ColorList = ({ colors, updateColors }) => {
         {colors.map(color => (
           <li key={color.color} onClick={() => editColor(color)}>
             <span>
-              <span className="delete" onClick={e => {
-                    e.stopPropagation();
-                    deleteColor(color)
-                  }
-                }>
-                  x
+              <span
+                className="delete"
+                onClick={e => {
+                  e.stopPropagation();
+                  deleteColor(color);
+                }}
+              >
+                x
               </span>{" "}
               {color.color}
             </span>
